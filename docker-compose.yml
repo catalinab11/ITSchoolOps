@@ -1,4 +1,24 @@
 services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins_sandbox
+    privileged: true
+    user: root
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - ${USER_NAME}/jenkins_sandbox_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+  agent:
+    image: jenkins/ssh-agent:jdk11
+    container_name: jenkins_sandbox_agent
+    privileged: true
+    user: root
+    expose:
+      - 22
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBLIC_KEY}
   db:
     image: mariadb:10.6.4-focal
     #image: mysql:8.0.27
@@ -7,10 +27,10 @@ services:
       - db_data:/var/lib/mysql
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=qwer@ASDF1
+      - MYSQL_ROOT_PASSWORD=${SQL_PASSWORD}
       - MYSQL_DATABASE=wordpress
       - MYSQL_USER=catalina
-      - MYSQL_PASSWORD=qwer@ASDF1
+      - MYSQL_PASSWORD=${SQL_PASSWORD}
     expose:
       - 3306
       - 33060
@@ -22,7 +42,7 @@ services:
     environment:
       - WORDPRESS_DB_HOST=db
       - WORDPRESS_DB_USER=catalina
-      - WORDPRESS_DB_PASSWORD=qwer@ASDF1
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_PASSWORD}
       - WORDPRESS_DB_NAME=wordpress
 volumes:
   db_data:
